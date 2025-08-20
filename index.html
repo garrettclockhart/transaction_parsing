@@ -3,66 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Clean and format credit card transaction data easily with this free offline tool">
-    <meta name="keywords" content="credit card, transaction, cleaner, parser, CSV, bank statement">
-    <meta name="author" content="Credit Card Transaction Cleaner">
-    <title>Credit Card Transaction Cleaner</title>
-    <link rel="stylesheet" href="./styles.css">
-    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💳</text></svg>">
+    <meta name="description" content="Tools, utilities, and thoughts on technology">
+    <title>My Website - Tools & Blog</title>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Credit Card Transaction Cleaner</h1>
-            <p>Clean and format your bank transaction data easily</p>
-        </header>
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="/" class="logo">My Website</a>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/apps/transaction-parser.html">Transaction Parser</a></li>
+                <li><a href="/apps/other-tools.html">Other Tools</a></li>
+                <li><a href="/blog/">Blog</a></li>
+            </ul>
+        </div>
+    </nav>
 
-        <main>
-            <div class="input-section">
-                <h2>Input Transaction Data</h2>
-                <textarea 
-                    id="transactionInput" 
-                    placeholder="Paste your bank transactions here..."
-                    rows="10"
-                ></textarea>
-                <div class="button-group">
-                    <button id="parseBtn" class="btn btn-primary">Parse Transactions</button>
-                    <button id="clearBtn" class="btn btn-secondary">Clear</button>
-                </div>
-            </div>
-
-            <div class="output-section">
-                <h2>Cleaned Results</h2>
-                <div id="resultsContainer">
-                    <p class="no-data">No transactions parsed yet. Paste your data and click 'Parse Transactions'.</p>
-                </div>
-                <div id="exportButtons" class="export-buttons" style="display: none;">
-                    <button id="copyCsvBtn" class="btn btn-success">Copy Data</button>
-                    <button id="downloadCsvBtn" class="btn btn-success">Download CSV</button>
-                </div>
-            </div>
-        </main>
-
-        <section class="instructions">
-            <h2>How to Use</h2>
-            <ol>
-                <li>Copy transaction data from your bank statement or app</li>
-                <li>Paste it into the input area above</li>
-                <li>Click "Parse Transactions" to clean and format the data</li>
-                <li>Use "Copy CSV" or "Download CSV" to export your cleaned data</li>
-            </ol>
-            
-            <div class="supported-formats">
-                <h3>Supported Formats</h3>
-                <ul>
-                    <li>5-column: Transaction Date, Posting Date, Description, Amount, Running Balance</li>
-                    <li>3-column: Date, Description, Amount</li>
-                    <li>2-column: Date, Description (amount embedded in description)</li>
-                </ul>
+    <main>
+        <section class="hero">
+            <div class="hero-content">
+                <h1>Welcome to My Website</h1>
+                <p>Tools, utilities, and thoughts on technology</p>
             </div>
         </section>
-    </div>
 
-    <script src="./script.js"></script>
+        <section class="tools-grid">
+            <div class="tool-card">
+                <div class="tool-icon">💳</div>
+                <h3>Transaction Parser</h3>
+                <p>Clean and format credit card transaction data from bank statements. Convert messy, copied transaction data into clean, structured format.</p>
+                <a href="/apps/transaction-parser.html" class="btn btn-primary">Try It</a>
+            </div>
+            
+            <div class="tool-card">
+                <div class="tool-icon">🛠️</div>
+                <h3>More Tools Coming</h3>
+                <p>I'm constantly building new utilities and tools. Check back soon for more helpful applications.</p>
+                <a href="/apps/other-tools.html" class="btn btn-secondary">Coming Soon</a>
+            </div>
+        </section>
+
+        <section class="recent-blog">
+            <h2>Recent Blog Posts</h2>
+            <div class="blog-preview">
+                <p>Check out my latest thoughts on technology, development, and more.</p>
+                <a href="/blog/" class="btn btn-outline">Read the Blog</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <p>&copy; 2025 My Website. Built with ❤️ and modern web technologies.</p>
+        </div>
+    </footer>
+
+    <script src="scripts/main.js"></script>
 </body>
 </html> 
