@@ -455,12 +455,13 @@ class TransactionParser extends HTMLElement {
         const transactionAmount = amounts[0];
         const balance = amounts[1];
         
-        const descriptionStart = line.indexOf(postingDate) + postingDate.length;
-        const descriptionEnd = line.indexOf(transactionAmount);
+        // Find the description by looking for content between the first date and the first amount
+        const firstDateEnd = line.indexOf(transactionDate) + transactionDate.length;
+        const firstAmountStart = line.indexOf(transactionAmount);
         
-        if (descriptionStart >= descriptionEnd) return null;
+        if (firstDateEnd >= firstAmountStart) return null;
         
-        let description = line.substring(descriptionStart, descriptionEnd).trim();
+        let description = line.substring(firstDateEnd, firstAmountStart).trim();
         description = this.cleanDescription(description);
         
         const amount = parseFloat(transactionAmount.replace('$', '').replace(',', ''));
@@ -557,7 +558,7 @@ class TransactionParser extends HTMLElement {
             .replace(/\b\d{10,}\b/g, '') // Remove long numbers (account numbers)
             .replace(/\b[A-Z]{2,3}\s+#\d+\b/g, '') // Remove reference codes like "WA #123456"
             .replace(/\b[A-Z]{2,3}\s+\d{8,}\b/g, '') // Remove other reference patterns
-            .replace(/#[A-Z0-9]+/g, '') // Remove transaction numbers with # symbol (letters and numbers)
+            .replace(/#[A-Z0-9]{8,}/g, '') // Remove long transaction numbers with # symbol (8+ characters)
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
     }
