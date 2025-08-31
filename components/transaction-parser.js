@@ -422,20 +422,58 @@ class TransactionParser extends HTMLElement {
     parseTransactionGroup(transactionLines) {
         const fullTransaction = transactionLines.join(' ');
         
-        let transaction = this.parseBankStatementFormat(fullTransaction);
-        
-        if (!transaction) {
-            transaction = this.parse5ColumnFormat(fullTransaction) ||
+        let transaction = this.parseDoubleDateFormat(fullTransaction) ||
+                         this.parseBankStatementFormat(fullTransaction) ||
+                         this.parse5ColumnFormat(fullTransaction) ||
                          this.parse3ColumnFormat(fullTransaction) ||
                          this.parse2ColumnFormat(fullTransaction) ||
                          this.parseGenericFormat(fullTransaction);
-        }
 
         if (transaction && transaction.description.toLowerCase().includes('online payment thank you')) {
             return null;
         }
 
         return transaction;
+    }
+
+    parseDoubleDateFormat(line) {
+        // Format: Date Date Description TransactionCode Amount Balance
+        const datePattern = /\b\d{1,2}\/\d{1,2}\/\d{2}\b/g;
+        const dates = line.match(datePattern);
+        
+        if (!dates || dates.length < 2) return null;
+        
+        const firstDate = dates[0];
+        const secondDate = dates[1];
+        
+        // Find the position after the second date
+        const secondDateEnd = line.indexOf(secondDate) + secondDate.length;
+        
+        // Find the first amount (transaction amount, not balance)
+        const amountPattern = /\$[\d,]+\.\d{2}/g;
+        const amounts = line.match(amountPattern);
+        
+        if (!amounts || amounts.length < 2) return null;
+        
+        const transactionAmount = amounts[0];
+        const balance = amounts[1];
+        
+        // Find the position of the transaction amount
+        const amountStart = line.indexOf(transactionAmount);
+        
+        if (secondDateEnd >= amountStart) return null;
+        
+        // Extract description between second date and transaction amount
+        let description = line.substring(secondDateEnd, amountStart).trim();
+        description = this.cleanDescription(description);
+        
+        const amount = parseFloat(transactionAmount.replace('$', '').replace(',', ''));
+        
+        return {
+            date: this.formatDate(firstDate),
+            description: description,
+            amount: amount
+        };
     }
 
     parseBankStatementFormat(line) {
