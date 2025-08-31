@@ -548,12 +548,14 @@ class TransactionParser extends HTMLElement {
     }
 
     isValidDate(dateStr) {
-        const datePattern = /^\d{1,2}\/\d{1,2}\/\d{2}$/;
+        // More flexible date pattern that accepts various formats
+        const datePattern = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
         return datePattern.test(dateStr);
     }
 
     isValidAmount(amountStr) {
-        const amountPattern = /^\$[\d,]+\.\d{2}$/;
+        // More flexible amount pattern that accepts various formats
+        const amountPattern = /^\$?[\d,]+\.\d{2}$/;
         return amountPattern.test(amountStr);
     }
 
@@ -633,7 +635,7 @@ class TransactionParser extends HTMLElement {
 
     showCopyNotification() {
         // Remove any existing notification
-        const existingNotification = document.querySelector('.copy-notification');
+        const existingNotification = this.shadowRoot.querySelector('.copy-notification');
         if (existingNotification) {
             existingNotification.remove();
         }
@@ -646,7 +648,7 @@ class TransactionParser extends HTMLElement {
             <span>Copied!</span>
         `;
         
-        document.body.appendChild(notification);
+        this.shadowRoot.appendChild(notification);
         
         // Trigger animation
         setTimeout(() => {
@@ -693,11 +695,11 @@ class TransactionParser extends HTMLElement {
     }
 
     generateCsv() {
-        const headers = ['Date', 'Description', 'Amount'];
+        // Only include transaction data, no headers
         const rows = this.transactions.map(t => [t.date, t.description, `$${t.amount.toFixed(2)}`]);
         
         // Use tab-separated values for better spreadsheet compatibility
-        const csvContent = [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
+        const csvContent = rows.map(row => row.join('\t')).join('\n');
         return csvContent;
     }
 }
