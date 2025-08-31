@@ -175,7 +175,24 @@ class TransactionParser extends HTMLElement {
                 .export-buttons {
                     margin-top: 20px;
                     display: flex;
+                    justify-content: center;
                     gap: 15px;
+                }
+
+                .btn-copy {
+                    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+                    color: white;
+                    transition: all 0.3s ease;
+                }
+
+                .btn-copy:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 8px 25px rgba(23, 162, 184, 0.3);
+                }
+
+                .btn-copy.copied {
+                    background: linear-gradient(135deg, #28a745 0%, #218838 100%);
+                    transform: scale(1.05);
                 }
 
                 .no-data {
@@ -322,8 +339,7 @@ class TransactionParser extends HTMLElement {
                             <p class="no-data">No transactions parsed yet. Paste your data and click 'Parse Transactions'.</p>
                         </div>
                         <div id="exportButtons" class="export-buttons" style="display: none;">
-                            <button id="copyCsvBtn" class="btn btn-success">Copy Data</button>
-                            <button id="downloadCsvBtn" class="btn btn-success">Download CSV</button>
+                            <button id="copyCsvBtn" class="btn btn-copy">Copy Data</button>
                         </div>
                     </div>
                 </main>
@@ -334,7 +350,7 @@ class TransactionParser extends HTMLElement {
                         <li>Copy transaction data from your bank statement or app</li>
                         <li>Paste it into the input area above</li>
                         <li>Click "Parse Transactions" to clean and format the data</li>
-                        <li>Use "Copy CSV" or "Download CSV" to export your cleaned data</li>
+                        <li>Use "Copy Data" to export your cleaned data</li>
                     </ol>
                     
                     <div class="supported-formats">
@@ -354,7 +370,6 @@ class TransactionParser extends HTMLElement {
         this.shadowRoot.getElementById('parseBtn').addEventListener('click', () => this.parseTransactions());
         this.shadowRoot.getElementById('clearBtn').addEventListener('click', () => this.clearInput());
         this.shadowRoot.getElementById('copyCsvBtn').addEventListener('click', () => this.copyToClipboard());
-        this.shadowRoot.getElementById('downloadCsvBtn').addEventListener('click', () => this.downloadCsv());
     }
 
     parseTransactions() {
@@ -542,7 +557,7 @@ class TransactionParser extends HTMLElement {
             .replace(/\b\d{10,}\b/g, '') // Remove long numbers (account numbers)
             .replace(/\b[A-Z]{2,3}\s+#\d+\b/g, '') // Remove reference codes like "WA #123456"
             .replace(/\b[A-Z]{2,3}\s+\d{8,}\b/g, '') // Remove other reference patterns
-            .replace(/#\d+/g, '') // Remove transaction numbers with # symbol
+            .replace(/#[A-Z0-9]+/g, '') // Remove transaction numbers with # symbol (letters and numbers)
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
     }
@@ -624,46 +639,22 @@ class TransactionParser extends HTMLElement {
         }
 
         const csvContent = this.generateCsv();
+        const copyButton = this.shadowRoot.getElementById('copyCsvBtn');
         
         navigator.clipboard.writeText(csvContent).then(() => {
-            this.showCopyNotification();
+            // Animate the button to green
+            copyButton.classList.add('copied');
+            copyButton.textContent = 'Copied!';
+            
+            // Reset after 2 seconds
+            setTimeout(() => {
+                copyButton.classList.remove('copied');
+                copyButton.textContent = 'Copy Data';
+            }, 2000);
         }).catch(err => {
             console.error('Failed to copy: ', err);
             this.fallbackCopy(csvContent);
         });
-    }
-
-    showCopyNotification() {
-        // Remove any existing notification
-        const existingNotification = this.shadowRoot.querySelector('.copy-notification');
-        if (existingNotification) {
-            existingNotification.remove();
-        }
-
-        // Create new notification
-        const notification = document.createElement('div');
-        notification.className = 'copy-notification';
-        notification.innerHTML = `
-            <div class="checkmark"></div>
-            <span>Copied!</span>
-        `;
-        
-        this.shadowRoot.appendChild(notification);
-        
-        // Trigger animation
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 10);
-        
-        // Remove notification after 3 seconds
-        setTimeout(() => {
-            notification.classList.remove('show');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
     }
 
     fallbackCopy(text) {
@@ -673,25 +664,17 @@ class TransactionParser extends HTMLElement {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        this.showCopyNotification();
-    }
-
-    downloadCsv() {
-        if (!this.transactions || this.transactions.length === 0) {
-            alert('No transactions to download.');
-            return;
-        }
-
-        const csvContent = this.generateCsv();
-        const blob = new Blob([csvContent], { type: 'text/csv' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'transactions.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
+        
+        // Animate the button to green
+        const copyButton = this.shadowRoot.getElementById('copyCsvBtn');
+        copyButton.classList.add('copied');
+        copyButton.textContent = 'Copied!';
+        
+        // Reset after 2 seconds
+        setTimeout(() => {
+            copyButton.classList.remove('copied');
+            copyButton.textContent = 'Copy Data';
+        }, 2000);
     }
 
     generateCsv() {
