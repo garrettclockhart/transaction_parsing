@@ -185,6 +185,51 @@ class TransactionParser extends HTMLElement {
                     padding: 40px 20px;
                 }
 
+                .copy-notification {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    background: #28a745;
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    font-weight: 600;
+                    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+                    transform: translateX(100%);
+                    transition: transform 0.3s ease;
+                    z-index: 1000;
+                }
+
+                .copy-notification.show {
+                    transform: translateX(0);
+                }
+
+                .copy-notification .checkmark {
+                    width: 20px;
+                    height: 20px;
+                    border: 2px solid white;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    position: relative;
+                }
+
+                .copy-notification .checkmark::after {
+                    content: '';
+                    width: 6px;
+                    height: 10px;
+                    border: solid white;
+                    border-width: 0 2px 2px 0;
+                    transform: rotate(45deg);
+                    position: absolute;
+                    top: 2px;
+                    left: 5px;
+                }
+
                 .instructions {
                     background: white;
                     padding: 30px;
@@ -497,6 +542,7 @@ class TransactionParser extends HTMLElement {
             .replace(/\b\d{10,}\b/g, '') // Remove long numbers (account numbers)
             .replace(/\b[A-Z]{2,3}\s+#\d+\b/g, '') // Remove reference codes like "WA #123456"
             .replace(/\b[A-Z]{2,3}\s+\d{8,}\b/g, '') // Remove other reference patterns
+            .replace(/#\d+/g, '') // Remove transaction numbers with # symbol
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
     }
@@ -578,11 +624,44 @@ class TransactionParser extends HTMLElement {
         const csvContent = this.generateCsv();
         
         navigator.clipboard.writeText(csvContent).then(() => {
-            alert('Transaction data copied to clipboard!');
+            this.showCopyNotification();
         }).catch(err => {
             console.error('Failed to copy: ', err);
             this.fallbackCopy(csvContent);
         });
+    }
+
+    showCopyNotification() {
+        // Remove any existing notification
+        const existingNotification = document.querySelector('.copy-notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+
+        // Create new notification
+        const notification = document.createElement('div');
+        notification.className = 'copy-notification';
+        notification.innerHTML = `
+            <div class="checkmark"></div>
+            <span>Copied!</span>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Trigger animation
+        setTimeout(() => {
+            notification.classList.add('show');
+        }, 10);
+        
+        // Remove notification after 3 seconds
+        setTimeout(() => {
+            notification.classList.remove('show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
     }
 
     fallbackCopy(text) {
@@ -592,7 +671,7 @@ class TransactionParser extends HTMLElement {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('Transaction data copied to clipboard!');
+        this.showCopyNotification();
     }
 
     downloadCsv() {
@@ -617,7 +696,8 @@ class TransactionParser extends HTMLElement {
         const headers = ['Date', 'Description', 'Amount'];
         const rows = this.transactions.map(t => [t.date, t.description, `$${t.amount.toFixed(2)}`]);
         
-        const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+        // Use tab-separated values for better spreadsheet compatibility
+        const csvContent = [headers.join('\t'), ...rows.map(row => row.join('\t'))].join('\n');
         return csvContent;
     }
 }
