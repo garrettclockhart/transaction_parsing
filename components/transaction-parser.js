@@ -642,8 +642,6 @@ class TransactionParser extends HTMLElement {
     cleanDescription(description) {
         return description
             .replace(/\b\d{10,}\b/g, '') // Remove long numbers (account numbers)
-            .replace(/\b[A-Z]{2,3}\s+#\d+\b/g, '') // Remove reference codes like "WA #123456"
-            .replace(/\b[A-Z]{2,3}\s+\d{8,}\b/g, '') // Remove other reference patterns
             .replace(/#[A-Z0-9]{8,}/g, '') // Remove long transaction numbers with # symbol (8+ characters)
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
