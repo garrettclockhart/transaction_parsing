@@ -420,20 +420,68 @@ class TransactionParser extends HTMLElement {
     }
 
     parseTransactionGroup(transactionLines) {
-        const fullTransaction = transactionLines.join(' ');
+        // Try multi-line format first
+        let transaction = this.parseMultiLineFormat(transactionLines);
         
-        let transaction = this.parseDoubleDateFormat(fullTransaction) ||
+        if (!transaction) {
+            // Fall back to single-line parsing
+            const fullTransaction = transactionLines.join(' ');
+            transaction = this.parseDoubleDateFormat(fullTransaction) ||
                          this.parseBankStatementFormat(fullTransaction) ||
                          this.parse5ColumnFormat(fullTransaction) ||
                          this.parse3ColumnFormat(fullTransaction) ||
                          this.parse2ColumnFormat(fullTransaction) ||
                          this.parseGenericFormat(fullTransaction);
+        }
 
         if (transaction && transaction.description.toLowerCase().includes('online payment thank you')) {
             return null;
         }
 
         return transaction;
+    }
+
+    parseMultiLineFormat(transactionLines) {
+        // Expected format:
+        // Date
+        // Date  
+        // Description
+        // TransactionCode
+        // Amount
+        // Balance
+        
+        if (transactionLines.length < 6) return null;
+        
+        const firstDate = transactionLines[0].trim();
+        const secondDate = transactionLines[1].trim();
+        const description = transactionLines[2].trim();
+        const transactionCode = transactionLines[3].trim();
+        const amount = transactionLines[4].trim();
+        const balance = transactionLines[5].trim();
+        
+        // Validate dates
+        if (!this.isValidDate(firstDate) || !this.isValidDate(secondDate)) return null;
+        
+        // Validate amount
+        if (!this.isValidAmount(amount)) return null;
+        
+        // Clean the description (remove transaction code if it's a long one)
+        let cleanedDescription = description;
+        if (transactionCode.startsWith('#') && transactionCode.length > 8) {
+            // Transaction code is long, it's already on a separate line, so just clean the description
+            cleanedDescription = this.cleanDescription(description);
+        } else {
+            // Transaction code might be part of description, clean both
+            cleanedDescription = this.cleanDescription(description + ' ' + transactionCode);
+        }
+        
+        const parsedAmount = parseFloat(amount.replace('$', '').replace(',', ''));
+        
+        return {
+            date: this.formatDate(firstDate),
+            description: cleanedDescription,
+            amount: parsedAmount
+        };
     }
 
     parseDoubleDateFormat(line) {
