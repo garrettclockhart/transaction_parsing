@@ -465,14 +465,18 @@ class TransactionParser extends HTMLElement {
         // Validate amount
         if (!this.isValidAmount(amount)) return null;
         
-        // Clean the description (remove transaction code if it's a long one)
+        // For multi-line format, the description is already clean and separate
+        // We only need to remove the long transaction code if it's on a separate line
         let cleanedDescription = description;
+        
+        // If the transaction code is a long alphanumeric string, it's already on a separate line
+        // so we don't need to include it in the description
         if (transactionCode.startsWith('#') && transactionCode.length > 8) {
-            // Transaction code is long, it's already on a separate line, so just clean the description
-            cleanedDescription = this.cleanDescription(description);
+            // Transaction code is separate, just use the description as-is
+            cleanedDescription = description;
         } else {
-            // Transaction code might be part of description, clean both
-            cleanedDescription = this.cleanDescription(description + ' ' + transactionCode);
+            // Transaction code might be part of description, include it
+            cleanedDescription = description + ' ' + transactionCode;
         }
         
         const parsedAmount = parseFloat(amount.replace('$', '').replace(',', ''));
@@ -642,7 +646,7 @@ class TransactionParser extends HTMLElement {
     cleanDescription(description) {
         return description
             .replace(/\b\d{10,}\b/g, '') // Remove long numbers (account numbers)
-            .replace(/#[A-Z0-9]{8,}/g, '') // Remove long transaction numbers with # symbol (8+ characters)
+            .replace(/#[A-Z0-9]{10,}/g, '') // Remove very long transaction numbers with # symbol (10+ characters)
             .replace(/\s+/g, ' ') // Normalize whitespace
             .trim();
     }
